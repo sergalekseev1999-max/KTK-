@@ -26,13 +26,19 @@
       background: #09090b;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
+    }
+    /* Защитный слой для безопасных зон iOS (Чёлка и низ) */
+    .safe-wrapper {
+      width: 100vw; height: 100vh;
+      padding-top: env(safe-area-inset-top, 20px);
+      padding-bottom: env(safe-area-inset-bottom, 20px);
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
     }
     /* Делаем спиннер по центру */
     #loading {
-      position: fixed; inset: 0;
+      position: absolute; inset: 0;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       background: radial-gradient(ellipse at top, #1e1b4b, #09090b);
@@ -53,14 +59,16 @@
   </style>
 </head>
 <body>
-  <div id="loading">
-    <div class="spinner"></div>
-    <p>Загрузка последней версии КТК...</p>
+  <div class="safe-wrapper">
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Загрузка последней версии КТК...</p>
+    </div>
+    
+    <!-- Главный iframe (окно в GAS) -->
+    <iframe id="app" allow="camera; microphone; clipboard-read; clipboard-write" style="flex:1; width:100%; border:none; display:block;"></iframe>
   </div>
-  
-  <!-- Главный iframe (окно в GAS) -->
-  <iframe id="app" allow="camera; microphone; clipboard-read; clipboard-write"></iframe>
-  
+
   <script>
     // 1. УБИЙЦА КЕША iOS: Регистрируем Service Worker
     if ('serviceWorker' in navigator) {
