@@ -47,11 +47,19 @@
     <div class="spinner"></div>
     <p>Загрузка КТК...</p>
   </div>
-  <iframe
-    id="app"
-    src="https://script.google.com/macros/s/AKfycbx-KXBk32hO36fMYV8SjdLF6mazf59prTwVuUSEg6zZ3wexAgrNG1sS_ZcxZ8DbzEYIUw/exec"
-    allow="camera; microphone; clipboard-read; clipboard-write"
-    onload="document.getElementById('loading').style.display='none'"
-  ></iframe>
+  <iframe id="app" allow="camera; microphone; clipboard-read; clipboard-write"></iframe>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var iframe = document.getElementById("app");
+      var baseUrl = "https://script.google.com/macros/s/AKfycbx-KXBk32hO36fMYV8SjdLF6mazf59prTwVuUSEg6zZ3wexAgrNG1sS_ZcxZ8DbzEYIUw/exec";
+      
+      iframe.onload = function() {
+        document.getElementById("loading").style.display = "none";
+      };
+      
+      iframe.src = baseUrl + "?t=" + Date.now();
+    });
+  </script>
 </body>
 </html>
