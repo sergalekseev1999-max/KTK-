@@ -4,15 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>КТК</title>
+  
+  <!-- Подключаем манифест для PWA. Это уберет адресную строку Safari -->
+  <link rel="manifest" href="manifest.json">
+  
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="КТК">
-  <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#09090b">
+  
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  
   <link rel="apple-touch-icon" href="https://img.icons8.com/parakeet/512/shipping-container.png">
+  
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -21,6 +27,7 @@
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
+    /* Делаем спиннер по центру */
     #loading {
       position: fixed; inset: 0;
       display: flex; flex-direction: column;
@@ -39,17 +46,56 @@
     }
     #loading p { font-size: 14px; color: #94a3b8; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    iframe { width: 100%; height: 100%; border: none; display: block; }
   </style>
 </head>
 <body>
   <div id="loading">
     <div class="spinner"></div>
-    <p>Загрузка КТК...</p>
+    <p>Загрузка последней версии КТК...</p>
   </div>
+  
+  <!-- Главный iframe (окно в GAS) -->
+  <iframe id="app" allow="camera; microphone; clipboard-read; clipboard-write"></iframe>
+  
   <script>
-    // Прямой редирект на GAS — обходит ВСЕ проблемы с кешем iframe на iOS
-    var gasUrl = "https://script.google.com/macros/s/AKfycbx-KXBk32hO36fMYV8SjdLF6mazf59prTwVuUSEg6zZ3wexAgrNG1sS_ZcxZ8DbzEYIUw/exec";
-    window.location.replace(gasUrl + "?nocache=" + Date.now());
+    // 1. УБИЙЦА КЕША iOS: Регистрируем Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('SW зарегистрирован. Кеш под контролем.');
+            registration.update(); // Всегда проверяем новую версию
+          })
+          .catch(err => console.log('Подключение SW провалилось:', err));
+      });
+    }
+
+    // 2. ЗАГРУЗКА ПРИЛОЖЕНИЯ
+    document.addEventListener("DOMContentLoaded", function () {
+      var iframe = document.getElementById("app");
+      // Ссылка EXEC для реальных пользователей
+      var baseUrl = "https://script.google.com/macros/s/AKfycbx-KXBk32hO36fMYV8SjdLF6mazf59prTwVuUSEg6zZ3wexAgrNG1sS_ZcxZ8DbzEYIUw/exec";
+      
+      iframe.onload = function() {
+        document.getElementById("loading").style.display = "none";
+      };
+
+      // Функция загрузки iframe с таймстампом
+      function loadApp() {
+        iframe.src = baseUrl + "?nocache=" + Date.now();
+      }
+      
+      loadApp();
+
+      // При сворачивании/разворачивании приложения обновляем страницу
+      document.addEventListener("visibilitychange", function() {
+        if (!document.hidden) {
+          document.getElementById("loading").style.display = "flex"; // Возвращаем спиннер на долю секунды
+          loadApp();
+        }
+      });
+    });
   </script>
 </body>
 </html>
